@@ -86,18 +86,28 @@ function loadRawDb() {
   try { return localStorage.getItem('madrasa_db') || ''; } catch (e) { return ''; }
 }
 function persistDb() {
-  var json = JSON.stringify(DB);
   var el = document.getElementById('saveIndicator');
-  el.textContent = '…'; el.style.opacity = '.4';
+  if (el) { el.textContent = '…'; el.style.opacity = '.4'; }
   clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(function () {
-    try {
-      if (HAS_BRIDGE) AndroidBridge.saveDb(json);
-      else localStorage.setItem('madrasa_db', json);
-    } catch (e) { showToast('সংরক্ষণ ব্যর্থ: ' + e); }
-    el.textContent = '✓'; el.style.opacity = '1';
-  }, 350);
+  _saveTimer = setTimeout(flushDb, 150);
 }
+function flushDb() {
+  clearTimeout(_saveTimer);
+  _saveTimer = null;
+  try {
+    var json = JSON.stringify(DB);
+    if (HAS_BRIDGE) AndroidBridge.saveDb(json);
+    else localStorage.setItem('madrasa_db', json);
+  } catch (e) { showToast('সংরক্ষণ ব্যর্থ: ' + e); }
+  var el = document.getElementById('saveIndicator');
+  if (el) { el.textContent = '✓'; el.style.opacity = '1'; }
+}
+try {
+  window.addEventListener('pagehide', function () { if (_saveTimer) flushDb(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && _saveTimer) flushDb();
+  });
+} catch (e) {}
 
 /* ---------- default db ---------- */
 function defaultDb() {
@@ -115,6 +125,19 @@ function defaultDb() {
     payments: [],
     salaries: []
   };
+}
+
+function migrateDb() {
+  var def = defaultDb();
+  Object.keys(def).forEach(function (k) { if (DB[k] === undefined) DB[k] = def[k]; });
+  if (!DB.settings) DB.settings = def.settings;
+  else Object.keys(def.settings).forEach(function (k) { if (DB.settings[k] === undefined) DB.settings[k] = def.settings[k]; });
+  ['classes', 'students', 'teachers', 'examDefs', 'payments', 'salaries'].forEach(function (k) {
+    if (!Array.isArray(DB[k])) DB[k] = [];
+  });
+  ['subjects', 'marks', 'attendance', 'tAttendance'].forEach(function (k) {
+    if (DB[k] === null || typeof DB[k] !== 'object' || Array.isArray(DB[k])) DB[k] = {};
+  });
 }
 
 /* lookups */

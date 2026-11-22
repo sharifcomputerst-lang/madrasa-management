@@ -56,8 +56,13 @@ function closeDrawer() {
   document.getElementById('overlay').classList.remove('show');
 }
 
+var CUR_PAGE = 'dashboard';
+var CUR_ARG = null;
+function render() { go(CUR_PAGE, CUR_ARG); }
 function go(page, arg) {
   closeDrawer();
+  CUR_PAGE = page;
+  CUR_ARG = arg;
   var links = document.querySelectorAll('.drawer a[data-page]');
   for (var i = 0; i < links.length; i++) {
     links[i].classList.toggle('active', links[i].getAttribute('data-page') === page);
@@ -321,6 +326,18 @@ function fe(label, id, val, readonly, type) {
 }
 function fed(label, id, val) {
   return '<div><label class="f">' + esc(label) + '</label><input id="' + id + '" type="date" value="' + esc(val || '') + '"></div>';
+}
+function fe2(id, html) {
+  var el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+function fev(id) {
+  var el = document.getElementById(id);
+  return el ? el.value : '';
+}
+function fev2(id) {
+  var el = document.getElementById(id);
+  return el ? String(el.value).trim() : '';
 }
 
 function printStudentList(list) {
@@ -856,8 +873,8 @@ PAGES.fees = function (el) {
     '<div><label>শ্রেণি</label><select id="feeCls">' + selOpts(DB.classes, window._feeCls, 'সব শ্রেণি') + '</select></div>' +
     '</div>' + (window._feeCls ? '<a class="btn small gold" style="margin-top:8px" href="javascript:printFeeSheet()">প্রিন্ট শিট</a>' : '') + '</div><div id="feeBody"></div>';
   el.innerHTML = html;
-  fe('feeMonth').onchange = function () { window._feeMonth = this.value; render(); };
-  fe('feeCls').onchange = function () { window._feeCls = this.value; render(); };
+  document.getElementById('feeMonth').onchange = function () { window._feeMonth = this.value; render(); };
+  document.getElementById('feeCls').onchange = function () { window._feeCls = this.value; render(); };
   var cls = DB.classes.filter(function (c) { return !window._feeCls || c.id === window._feeCls; });
   var body = '';
   var shown = clsStudentsOf(cls);
@@ -904,8 +921,8 @@ PAGES.dues = function (el) {
     '<div class="mt"><button class="btn small gold" onclick="printDues()">প্রিন্ট বকেয়া তালিকা</button></div></div>' +
     '<div id="dueBody"></div>';
   el.innerHTML = html;
-  fe('dueMonth').onchange = function () { window._dueMonth = this.value; render(); };
-  fe('dueCls').onchange = function () { window._dueCls = this.value; render(); };
+  document.getElementById('dueMonth').onchange = function () { window._dueMonth = this.value; render(); };
+  document.getElementById('dueCls').onchange = function () { window._dueCls = this.value; render(); };
   var mEnd = Number(ym.split('-')[1]);
   var rows = [];
   DB.students.forEach(function (s) {
@@ -986,7 +1003,7 @@ PAGES.tsalary = function (el) {
     '<div class="card"><label>মাস</label><select id="salMonth">' + monthOpts(ym, 2) + '</select>' +
     '<div class="mt"><button class="btn small gold" onclick="printSalarySheet()">প্রিন্ট বেতন শিট</button></div></div><div id="salBody"></div>';
   el.innerHTML = html;
-  fe('salMonth').onchange = function () { window._salMonth = this.value; render(); };
+  document.getElementById('salMonth').onchange = function () { window._salMonth = this.value; render(); };
   var body = '<table class="t"><tr><th>নাম</th><th>পদবি</th><th>বেতন</th><th>প্রদান</th><th>অবশিষ্ট</th><th></th></tr>';
   DB.teachers.filter(function (t) { return t.status === 'active'; }).forEach(function (t) {
     var sal = Number(t.salary) || 0, paid = 0;
@@ -1041,7 +1058,7 @@ PAGES.reports = function (el) {
   el.innerHTML = '<h2>মাসিক পাঠদানের রিপোর্ট</h2>' +
     '<div class="card"><label>মাস</label><select id="repMonth">' + monthOpts(ym, 2) + '</select>' +
     '<div class="mt"><button class="btn small gold" onclick="printReport()">প্রিন্ট মাসিক রিপোর্ট</button></div></div><div id="repBody"></div>';
-  fe('repMonth').onchange = function () { window._repMonth = this.value; render(); };
+  document.getElementById('repMonth').onchange = function () { window._repMonth = this.value; render(); };
   var body = '<h3>শিক্ষার্থী হাজিরা</h3>';
   var any = false;
   DB.classes.forEach(function (c) {

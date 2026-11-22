@@ -15,17 +15,20 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,8 +40,10 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
 
+    private static final int REQ_FILE_CHOOSER = 4001;
     private WebView webView;
     private Handler ui;
+    private ValueCallback<Uri[]> pendingFileChoosers;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -61,14 +66,50 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(true);
         webView.addJavascriptInterface(new Bridge(), "AndroidBridge");
         webView.setWebViewClient(new WebViewClient());
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> callback,
+                                             FileChooserParams params) {
+                if (pendingFileChoosers != null) {
+                    pendingFileChoosers.onReceiveValue(null);
+                }
+                pendingFileChoosers = callback;
+                try {
+                    Intent intent = params.createIntent();
+                    startActivityForResult(intent, REQ_FILE_CHOOSER);
+                } catch (Exception e) {
+                    pendingFileChoosers = null;
+                    toast("ফাইল নির্বাচক খোলা যায়নি: " + e.getMessage());
+                    return false;
+                }
+                return true;
+            }
+        });
         webView.loadUrl("file:///android_asset/app/index.html");
         ui = new Handler();
     }
 
     @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) webView.goBack();
-        else super.onBackPressed();
+        if (webView != null) {
+            webView.evaluateJavascript("(typeof closeDrawer === 'function' ? closeDrawer() : false)", null);
+            if (webView.canGoBack()) {
+                webView.goBack();
+                return;
+            }
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQ_FILE_CHOOSER && pendingFileChoosers != null) {
+            pendingFileChoosers.onReceiveValue(
+                    WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+            pendingFileChoosers = null;
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void toast(final String msg) {
@@ -231,10 +272,20 @@ public class MainActivity extends Activity {
         }
 
         private String readAll(File f) {
+            FileInputStream in = null;
             try {
-                return new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
+                in = new FileInputStream(f);
+                ByteArrayOutputStream buf = new ByteArrayOutputStream();
+                byte[] chunk = new byte[8192];
+                int n;
+                while ((n = in.read(chunk)) > 0) buf.write(chunk, 0, n);
+                return new String(buf.toByteArray(), StandardCharsets.UTF_8);
             } catch (Exception e) {
                 return "";
+            } finally {
+                if (in != null) {
+                    try { in.close(); } catch (Exception ignored) {}
+                }
             }
         }
 
