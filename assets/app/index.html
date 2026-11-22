@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.2">
+<title>মাদরাসা ম্যানেজমেন্ট</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <button id="menuBtn" class="icon-btn" aria-label="মেনু">☰</button>
+  <div class="topbar-title">
+    <div id="topMadrasaName">মাদরাসা ম্যানেজমেন্ট</div>
+    <small id="topSubtitle">সম্পূর্ণ অফলাইন</small>
+  </div>
+  <span id="saveIndicator" class="save-ind" title="ডেটা সংরক্ষিত">✓</span>
+</header>
+
+<div id="overlay" class="overlay"></div>
+
+<nav id="drawer" class="drawer">
+  <div class="drawer-head">
+    <div class="drawer-logo">🕌</div>
+    <div><b id="drawerMadrasaName">মাদরাসা</b><br><small>ব্যবস্থাপনা প্যানেল</small></div>
+  </div>
+  <div class="nav-g">সাধারণ</div>
+  <a data-page="dashboard">📊 ড্যাশবোর্ড</a>
+  <a data-page="admission">📝 নতুন ভর্তি</a>
+  <a data-page="students">👥 শিক্ষার্থী তালিকা</a>
+  <a data-page="teachers">🧑‍🏫 শিক্ষক তালিকা</a>
+  <div class="nav-g">হাজিরা ও পাঠদান</div>
+  <a data-page="attendance">✅ শিক্ষার্থী হাজিরা</a>
+  <a data-page="tattendance">✅ শিক্ষক হাজিরা</a>
+  <a data-page="reports">📈 মাসিক রিপোর্ট</a>
+  <div class="nav-g">পরীক্ষা ও রেজাল্ট</div>
+  <a data-page="exams">🗂️ পরীক্ষা ব্যবস্থাপনা</a>
+  <a data-page="marks">✍️ নম্বর প্রবেশ</a>
+  <a data-page="results">🎓 রেজাল্ট ও মার্কশিট</a>
+  <div class="nav-g">আর্থিক</div>
+  <a data-page="fees">💰 মাসিক বেতন আদায়</a>
+  <a data-page="dues">⚠️ বকেয়া বেতন</a>
+  <a data-page="tsalary">💵 শিক্ষক বেতন</a>
+  <div class="nav-g">অন্যান্য</div>
+  <a data-page="settings">⚙️ সেটিংস ও ব্যাকআপ</a>
+  <div class="drawer-foot">ভার্সন ১.০ • সম্পূর্ণ অফলাইন</div>
+</nav>
+
+<main id="page"></main>
+
+<div id="modalRoot"></div>
+<div id="toast" class="toast"></div>
+
+<script src="helpers.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
